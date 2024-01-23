@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Rearrangeable Boxes</title>
+    <style>
+      body {
+        background-image: url("images/cop.jpeg");
+        background-size: cover;
+        background-repeat: no-repeat;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+          sans-serif;
+      }
+      .container {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+      }
+      .fixed,
+      .draggable {
+        margin: 10px;
+        display: flex;
+        flex-direction: column;
+      }
+      .box {
+        width: 450px;
+        height: 90px;
+        margin: 5px;
+        text-align: center;
+        vertical-align: middle;
+        line-height: 90px;
+        border: 3px solid whitesmoke;
+        border-radius: 5px;
+      }
+      .fixed .box {
+        background-color: rgb(0, 191, 255);
+      }
+      .draggable .box {
+        background-color: rgb(255, 234, 0);
+        cursor: pointer;
+      }
+      .locked {
+        pointer-events: none;
+        opacity: 0.7;
+      }
+      .button {
+        display: flex;
+      }
+      #actionButton {
+        display: block; /* Make the button a block-level element */
+        width: 200px; /* Define a specific width */
+        margin: 20px auto; /* Vertical margins (top and bottom) of 20px and horizontal margins (left and right) auto */
+      }
+
+      .heading-box-box {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .heading-box {
+        border: 2px;
+        border: rgb(87, 171, 255);
+        border-style: solid;
+        background-color: beige;
+        display: inline-flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 0px 10px 0px 10px;
+        border-radius: 10px;
+      }
+
+      .hyper-heading {
+        font-weight: 900;
+        font-size: larger;
+        margin: 6px 0px 4px 0px;
+      }
+
+      .heading {
+        text-align: center;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+          sans-serif;
+        font-size: large;
+        font-weight: bold;
+        margin: 4px 0px 8px 0px;
+      }
+
+      .win-screen {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        justify-content: center;
+        align-items: center;
+      }
+
+      .win-message {
+        text-align: center;
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="heading-box-box">
+      <div class="heading-box">
+        <p class="hyper-heading">Københavns Seværdigheder</p>
+        <p class="heading">
+          Bevæg bokserne sådan at beskrivningen til højre passer til
+          seværdigheden til venstre, <br />
+          derefter tryk på "check" for at finde ud om du har gjort det rigtigt.
+        </p>
+      </div>
+    </div>
+    <div class="container">
+      <div class="fixed">
+        <div class="box">Box 1</div>
+        <div class="box">Box 2</div>
+        <div class="box">Box 3</div>
+        <div class="box">Box 4</div>
+        <div class="box">Box 5</div>
+        <div class="box">Box 6</div>
+        <div class="box">Box 7</div>
+        <div class="box">Box 8</div>
+      </div>
+      <div class="draggable">
+        <div class="box" draggable="true" aria-grabbed="false">Box 9</div>
+        <div class="box" draggable="true" aria-grabbed="false">Box 10</div>
+        <div class="box" draggable="true" aria-grabbed="false">Box 11</div>
+        <div class="box" draggable="true" aria-grabbed="false">Box 12</div>
+        <div class="box" draggable="true" aria-grabbed="false">Box 13</div>
+        <div class="box" draggable="true" aria-grabbed="false">Box 14</div>
+        <div class="box" draggable="true" aria-grabbed="false">Box 15</div>
+        <div class="box" draggable="true" aria-grabbed="false">Box 16</div>
+      </div>
+    </div>
+
+    <button
+      id="actionButton"
+      onclick="checkOrRestart()"
+      style="font-size: large"
+    >
+      Check Order
+    </button>
+    <div id="result"></div>
+
+    <script>
+      let draggedItem = null;
+      let isOrderChecked = false;
+
+      document.querySelectorAll(".draggable .box").forEach((item) => {
+        item.addEventListener("dragstart", function () {
+          draggedItem = item;
+          item.setAttribute("aria-grabbed", "true");
+          setTimeout(() => {
+            item.style.display = "none";
+          }, 0);
+        });
+
+        item.addEventListener("dragend", function () {
+          setTimeout(() => {
+            draggedItem.style.display = "block";
+            item.setAttribute("aria-grabbed", "false");
+            draggedItem = null;
+          }, 0);
+        });
+
+        item.addEventListener("dragover", function (e) {
+          e.preventDefault();
+        });
+
+        item.addEventListener("dragenter", function (e) {
+          e.preventDefault();
+          this.style.backgroundColor = "rgb(255, 255, 0)";
+        });
+
+        item.addEventListener("dragleave", function () {
+          this.style.backgroundColor = "rgb(255, 234, 0)";
+        });
+
+        item.addEventListener("drop", function (event) {
+          event.preventDefault();
+          this.style.backgroundColor = "rgb(255, 234, 0)";
+
+          const targetRect = this.getBoundingClientRect();
+          const targetCenter = targetRect.top + targetRect.height / 2;
+
+          if (event.clientY < targetCenter) {
+            this.before(draggedItem);
+          } else {
+            this.after(draggedItem);
+          }
+
+          draggedItem.style.display = "block";
+          draggedItem = null;
+        });
+      });
+
+      const draggableContainer = document.querySelector(".draggable");
+      draggableContainer.addEventListener("dragover", function (event) {
+        event.preventDefault();
+      });
+
+      draggableContainer.addEventListener("drop", function (event) {
+        event.preventDefault();
+        if (draggedItem && event.target === draggableContainer) {
+          this.appendChild(draggedItem);
+          draggedItem.style.display = "block";
+          draggedItem = null;
+        }
+      });
+
+      const correctOrder = [
+        "Box 9",
+        "Box 10",
+        "Box 11",
+        "Box 12",
+        "Box 13",
+        "Box 14",
+        "Box 15",
+        "Box 16",
+      ];
+
+      function checkOrRestart() {
+        if (!isOrderChecked) {
+          checkOrder();
+        } else {
+          restart();
+        }
+      }
+
+      function checkOrder() {
+        const boxes = document.querySelectorAll(".draggable .box");
+        let isCorrect = true;
+
+        boxes.forEach((box, index) => {
+          if (box.textContent.trim() === correctOrder[index]) {
+            box.style.backgroundColor = "green";
+          } else {
+            box.style.backgroundColor = "red";
+            isCorrect = false;
+          }
+          box.classList.add("locked");
+        });
+
+        document.getElementById("result").textContent = isCorrect
+          ? "Correct"
+          : "Incorrect";
+        document.getElementById("actionButton").textContent = "Restart";
+        isOrderChecked = true;
+
+        if (isCorrect) {
+          document.getElementById("winScreen").style.display = "flex"; // Show win screen
+        }
+      }
+
+      function restart() {
+        const boxes = document.querySelectorAll(".draggable .box");
+        boxes.forEach((box, index) => {
+          box.textContent = correctOrder[index];
+          box.style.backgroundColor = "rgb(255, 234, 0)";
+          box.classList.remove("locked");
+        });
+        document.getElementById("result").textContent = "";
+        document.getElementById("actionButton").textContent = "Check Order";
+        isOrderChecked = false;
+      }
+
+      function hideWinScreen() {
+        document.getElementById("winScreen").style.display = "none";
+        restart(); // Assuming you have a restart function to reset the game
+      }
+    </script>
+
+    <div id="winScreen" class="win-screen">
+      <div class="win-message">
+        <h2>Congratulations! You won!</h2>
+        <button onclick="hideWinScreen()">Play Again</button>
+      </div>
+    </div>
+  </body>
+</html>
